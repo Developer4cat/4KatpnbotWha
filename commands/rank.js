@@ -14,9 +14,9 @@ module.exports.run = async (sock, msg, args) => {
                 { quoted: msg },
             );
         const gid = remoteJid.split("@")[0];
-        const enable = getConfig("rank", gid);
+        const enable = await getConfig("rank", gid);
         const name = (await sock.groupMetadata(remoteJid)).subject;
-        const { has, mentions, text } = await getRank(gid);
+        const { has, mentions, text } = await getRank(gid, sock, remoteJid);
         const footer = enable ? "" : "El sistema de niveles esta desactivado.";
         if (!has) {
             return sock.sendMessage(

@@ -1,56 +1,56 @@
-{
-    "name": "cyopn-bot",
-    "version": "1.2.1",
-    "description": "Un bot de WhatsApp facil e intuitivo de usar",
-    "main": "index.js",
-    "directories": {
-        "lib": "lib"
-    },
-    "dependencies": {
-        "@adiwajshing/keyed-db": "^0.2.4",
-        "@hapi/boom": "^10.0.1",
-        "@tobyg74/tiktok-api-dl": "^1.3.7",
-        "@whiskeysockets/baileys": "^7.0.0-rc.9",
-        "axios": "^1.18.0",
-        "body-parser": "^2.3.0",
-        "cheerio": "^1.2.0",
-        "crypto-js": "^4.2.0",
-        "dotenv": "^17.4.2",
-        "express": "^5.2.1",
-        "ffmpeg": "^0.0.4",
-        "formdata-node": "^6.0.3",
-        "got-cjs": "^12.5.4",
-        "jsdom": "^29.1.1",
-        "ko-sleep": "^1.1.4",
-        "node-read": "^0.1.7",
-        "puppeteer": "^24.43.1",
-        "qrcode-terminal": "^0.12.0",
-        "ruhend-scraper": "^10.0.3",
-        "simple-tts-mp3": "^1.1.0",
-        "twitter-downloader": "^1.1.8",
-        "update": "^0.7.4",
-        "wa-sticker-formatter": "^4.4.4",
-        "ytdlp-nodejs": "^3.4.4"
-    },
-    "scripts": {
-        "start": "ts-node index.ts",
-        "test": "node test.js"
-    },
-    "repository": {
-        "type": "git",
-        "url": "git+https://github.com/Cyopn/CyopnBotWha.git"
-    },
-    "keywords": [
-        "WhatsAppBot"
-    ],
-    "author": "Cyopn",
-    "license": "Apache License",
-    "bugs": {
-        "url": "https://github.com/Cyopn/CyopnBotWha/issues"
-    },
-    "homepage": "https://github.com/Cyopn/CyopnBotWha#readme",
-    "devDependencies": {
-        "ts-node": "^10.9.2",
-        "typescript": "^6.0.3"
-    }
-}
+{
+    "name": "4ktbot",
+    "version": "1.2.1",
+    "description": "Un bot de WhatsApp facil e intuitivo de usar",
+    "main": "index.js",
+    "directories": {
+        "lib": "lib"
+    },
+    "dependencies": {
+        "@adiwajshing/keyed-db": "^0.2.4",
+        "@hapi/boom": "^10.0.1",
+        "@tobyg74/tiktok-api-dl": "^1.3.7",
+        "@whiskeysockets/baileys": "^7.0.0-rc.9",
+        "axios": "^1.18.0",
+        "body-parser": "^2.3.0",
+        "cheerio": "^1.2.0",
+        "crypto-js": "^4.2.0",
+        "dotenv": "^17.4.2",
+        "express": "^5.2.1",
+        "ffmpeg": "^0.0.4",
+        "formdata-node": "^6.0.3",
+        "got-cjs": "^12.5.4",
+        "jsdom": "^29.1.1",
+        "ko-sleep": "^1.1.4",
+        "node-read": "^0.1.7",
+        "puppeteer": "^24.43.1",
+        "qrcode-terminal": "^0.12.0",
+        "ruhend-scraper": "^10.0.3",
+        "simple-tts-mp3": "^1.1.0",
+        "twitter-downloader": "^1.1.8",
+        "update": "^0.7.4",
+        "wa-sticker-formatter": "^4.4.4",
+        "ytdlp-nodejs": "^3.4.4"
+    },
+    "scripts": {
+        "start": "ts-node index.ts",
+        "test": "node test.js"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/Developer4cat/4KatpnbotWha.git"
+    },
+    "keywords": [
+        "WhatsAppBot"
+    ],
+    "author": "Developer4cat",
+    "license": "Apache License",
+    "bugs": {
+        "url": "https://github.com/Developer4cat/4KatpnbotWha/issues"
+    },
+    "homepage": "https://github.com/Developer4cat/4KatpnbotWha#readme",
+    "devDependencies": {
+        "ts-node": "^10.9.2",
+        "typescript": "^6.0.3"
+    }
+}

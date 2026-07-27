@@ -4,16 +4,22 @@ const { getCommands } = require("../lib/functions");
 
 module.exports.run = async (sock, msg, args) => {
 	const { command, alias, type, desc, fulldesc } = await getCommands();
-	let txt = `*CyopnBot* 
-	*Prefijo*: [  ${prefix}  ] 
-	_yo_ : https://instagram.com/Cyopn_
-	Sigue el canal de información para estar al día de las novedades y actualizaciones: ${channel}
+	let txt = `*4ktbot* 
+*Prefijo*: [  ${prefix}  ]
 
-	*Información*
-	Escribe ${prefix} seguido de cualquiera de los comandos. Puedes usar el nombre del comando o su alias.
-	_Uso: ${prefix}[Comando] [Texto/Enlace/Otros]_
-	Se deben sustituir los paréntesis/corchetes según corresponda.
-	_Ejemplo: ${prefix}attp Hola_
+Sigue el canal de información para estar al día de las novedades y actualizaciones:
+
+*Información*
+Escribe ${prefix} seguido de cualquiera de los comandos. Puedes usar el nombre del comando o su alias.
+
+*Uso: ${prefix}[Comando] [Texto/Enlace/Otros]*
+Se deben sustituir los paréntesis/corchetes según corresponda.
+
+*Ejemplo: ${prefix}attp Hola*
+
+*Chiste del día:*
+Dicen que Gabo Chuc abrió un restaurante de chucrut, pero nadie volvió… porque el menú decía: “chucrut gratis, puto el que lo lea”.
+
 
 	*Comandos disponibles*:`;
 	command.forEach((name) => {

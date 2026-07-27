@@ -1,20 +1,57 @@
-config.json
-node_modules
+# Dependencias
+node_modules/
 package-lock.json
-media/audio/tts.mp3
-media/images/w.jpg
-media/temp/output.json
-commands/test.js
-db/
-**test.*
-output.json
-auth_info
+
+# Secretos y sesion WhatsApp (NUNCA subir)
 .env
+.env.*
+!.envexample
+auth_info/
+auth_info/**
 secrets.json
 info.txt
+credentials.json
+*.pem
+*.p12
+*.key
+
+# Bases de datos y logs locales
+db/
+db/**
 logs.txt
-temp/**.**
-env
+log.txt
+.docker-log.pid
 .eslintcache
-media_storage/**.**
-media_storage/vo/**.**
+
+# Media temporal / almacenamiento local
+media/audio/tts.mp3
+media/images/w.jpg
+media/temp/
+media/temp/**
+media_storage/
+media_storage/**
+temp/
+temp/**
+
+# Empaquetados y artefactos locales (pueden incluir secretos)
+*.zip
+4ktbot-*.zip
+release-pack-rank/
+release.zip
+deploy-local.env
+
+# Servicio CapCut TTS local (incluye .env, sesiones y node_modules)
+services/
+services/**
+
+# IDE / entorno local
+*.code-workspace
+.vscode/
+.idea/
+config.json
+
+# Tests / outputs
+commands/test.js
+**test.*
+output.json
+media/temp/output.json

@@ -11,7 +11,7 @@ import NodeCache from '@cacheable/node-cache'
 import P from 'pino'
 import sleep from 'ko-sleep'
 
-const { msgStorage, getCommands } = require("./lib/functions.js");
+const { msgStorage, getCommands, appendLog } = require("./lib/functions.js");
 const { processGroup, evalLevel, saveConversation, getConfig, getConfigValue, setConfigValue } = require("./lib/db.js");
 const { chatWithOllama, isMessageAboutBot } = require("./lib/ollama.js");
 require("dotenv").config();
@@ -26,12 +26,14 @@ let commands: Map<string, { name: string, alias: string[] }> = new Map()
 const MENU_WORDS_REGEX = /\b(menu|comando|comandos)\b/i;
 const GREETING_WORDS_REGEX = /^(hola|holaa+|buenas|buenos dias|buenos días|buenas tardes|buenas noches|que tal|qué tal|saludos)\b/i;
 const URL_WORDS_REGEX = /(https?:\/\/|www\.|t\.me\/|wa\.me\/)/i;
-const botMenuIdentifiers = (BOT_MENU_IDENTIFIERS || "bot,chip,cyopnbot,cyopn")
+const botMenuIdentifiers = (BOT_MENU_IDENTIFIERS || "bot,chip,4ktbot")
 	.split(",")
 	.map((x) => x.trim().toLowerCase())
 	.filter(Boolean);
 
 const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const sanitizePhone = (phone?: string) => String(phone || "").replace(/\D/g, "");
+const botPhone = sanitizePhone(bot);
 const hasMenuWord = (text: string) => MENU_WORDS_REGEX.test(String(text || ""));
 const isGreetingMessage = (text: string) => GREETING_WORDS_REGEX.test(String(text || "").trim().toLowerCase());
 const hasUrl = (text: string) => URL_WORDS_REGEX.test(String(text || ""));
@@ -43,7 +45,7 @@ const getGreetingByTime = () => {
 };
 const buildGreetingReply = () => `${getGreetingByTime()}, ¿en qué te puedo ayudar? Puedes pedirme el menu o hacerme una pregunta.`;
 const MEDIA_COMMANDS_BY_KIND: Record<string, string[]> = {
-	sticker: ["toimg", "tovideo", "sticker"],
+	sticker: ["toimg", "tovideo", "togif", "sticker"],
 	image: ["sticker", "lottie", "attp"],
 	video: ["toaudio", "sticker", "tovideo"],
 	link: ["fbdownload", "igdownload", "tiktok", "tkaudio", "tuiter"],
@@ -130,9 +132,8 @@ fs.readdir(`./commands/`).then((files) => {
 
 const buildCommandsMenu = async () => {
 	const { command, alias, type, desc } = await getCommands();
-	let txt = `*CyopnBot* 
+	let txt = `*4ktbot* 
 	*Prefijo*: [  ${prefix}  ] 
-	_yo_ : https://instagram.com/Cyopn_
 	Sigue el canal de información para estar al día de las novedades y actualizaciones: ${channel}
 
 	*Información*
@@ -222,12 +223,15 @@ const getIncomingMessageKind = (msg: any, text: string) => {
 };
 
 const startSock = async () => {
+	appendLog("startSock ejecutado — iniciando cliente WhatsApp");
 	const { state, saveCreds } = await useMultiFileAuthState('auth_info')
 	const { version } = await fetchLatestBaileysVersion()
 
 	const sock = makeWASocket({
 		version,
 		logger,
+		printQRInTerminal: false,
+		browser: ["Windows", "Chrome", "Chrome 114.0.5735.198"],
 		auth: {
 			creds: state.creds,
 			keys: makeCacheableSignalKeyStore(state.keys, logger),
@@ -235,17 +239,40 @@ const startSock = async () => {
 		msgRetryCounterCache,
 	});
 
-	if (!sock.authState.creds.registered) {
-		await sleep(1000)
-		const code = await sock.requestPairingCode(bot)
-		console.log(`Codigo de verificacion: ${code}`)
+	let pairingRequested = false;
+
+	const requestPairing = async () => {
+		if (pairingRequested || sock.authState.creds.registered || !botPhone) return;
+		pairingRequested = true;
+		await sleep(1500);
+		try {
+			const code = await sock.requestPairingCode(botPhone);
+			console.log(`Codigo de verificacion: ${code}`);
+		} catch (err) {
+			console.error("No se pudo generar codigo de vinculacion:", err);
+			pairingRequested = false;
+		}
+	};
+
+	if (!sock.authState.creds.registered && botPhone) {
+		void requestPairing();
 	}
 
 	console.log("Cliente listo");
 	sock.ev.process(async (events) => {
 		if (events['connection.update']) {
 			const update = events['connection.update']
-			const { connection, lastDisconnect } = update
+			const { connection, lastDisconnect, qr } = update
+
+			if (qr && !sock.authState.creds.registered) {
+				await requestPairing();
+			}
+
+			if (connection === 'open') {
+				console.log("WhatsApp conectado.");
+				appendLog("WhatsApp conectado");
+			}
+
 			if (connection === 'close') {
 				if ((lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut) {
 					startSock()
@@ -262,7 +289,7 @@ const startSock = async () => {
 		if (events["groups.upsert"]) {
 			const [metadata] = events["groups.upsert"];
 			await sock.sendMessage(metadata.id, {
-				text: `Hola, soy un bot multipropósito.\nUsa !help para ver los comandos disponibles.\nCualquier duda o sugerencia será respondida en:\nWhatsApp: wa.me/+${owner}\nInstagram: https://www.instagram.com/cyopn_/\n*Nota importante*: El administrador del bot/número tendrá acceso a este chat.\nSigue el canal de información para estar al día de novedades y actualizaciones: ${channel}`,
+				text: `Hola, soy 4ktbot, un bot multipropósito.\nUsa !help para ver los comandos disponibles.\nCualquier duda o sugerencia será respondida en:\nWhatsApp: wa.me/+${owner}\n*Nota importante*: El administrador del bot/número tendrá acceso a este chat.\nSigue el canal de información para estar al día de novedades y actualizaciones: ${channel}`,
 			});
 		}
 
@@ -495,4 +522,5 @@ const startSock = async () => {
 	return sock;
 };
 
+appendLog("npm start — bot arrancando");
 startSock();

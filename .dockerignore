@@ -1,0 +1,23 @@
+node_modules
+auth_info
+db
+temp
+logs.txt
+media_storage
+.git
+.env
+*.bat
+Dockerfile
+docker-compose.yml
+.dockerignore
+services
+chip torres mendoza, el algoritmo del tirmo.code-workspace
+**/*.png
+**/*.jpg
+**/*.webp
+**/*.mp4
+**/*.gif
+eslint.config.js
+.eslintrc.json
+.eslintcache
+.eslintignore

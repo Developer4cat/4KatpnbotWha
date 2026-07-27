@@ -1,78 +1,93 @@
 require("dotenv").config();
-const { prefix, owner } = process.env;
-const { sticker, errorHandler, prepareStickerMedia } = require("../lib/functions");
+const { prefix } = process.env;
+const { buildStickerBuffer, errorHandler } = require("../lib/functions");
 const { downloadContentFromMessage } = require("@whiskeysockets/baileys");
 const fs = require("fs");
+const path = require("path");
+
+const pick = (...values) => values.find((value) => value != null);
+
+const resolveStickerSource = (msg) => {
+	const quoted = msg.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+	const viewOnce = msg.message?.viewOnceMessage?.message || msg.message?.viewOnceMessageV2?.message;
+	const quotedViewOnce = quoted?.viewOnceMessage?.message || quoted?.viewOnceMessageV2?.message;
+
+	const imageMessage = pick(
+		msg.message?.imageMessage,
+		quoted?.imageMessage,
+		viewOnce?.imageMessage,
+		quotedViewOnce?.imageMessage,
+	);
+	const videoMessage = pick(
+		msg.message?.videoMessage,
+		quoted?.videoMessage,
+		viewOnce?.videoMessage,
+		quotedViewOnce?.videoMessage,
+	);
+
+	if (imageMessage?.mimetype === "image/gif") {
+		return { media: imageMessage, kind: "gif", downloadType: "image" };
+	}
+	if (imageMessage) {
+		return { media: imageMessage, kind: "image", downloadType: "image" };
+	}
+	if (videoMessage) {
+		const kind = videoMessage.gifPlayback ? "gif" : "video";
+		return { media: videoMessage, kind, downloadType: "video" };
+	}
+	return null;
+};
 
 module.exports.run = async (sock, msg, args) => {
-	const type =
-		msg.message.imageMessage ||
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-				?.imageMessage ||
-			msg.message?.viewOnceMessage?.message?.imageMessage ||
-			msg.message?.viewOnceMessageV2?.message?.imageMessage ||
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-				?.viewOnceMessage?.message?.imageMessage ||
-			msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-				?.viewOnceMessageV2?.message?.imageMessage
-			? "image"
-			: msg.message?.videoMessage ||
-				msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-					?.videoMessage ||
-				msg.message?.viewOnceMessage?.message?.videoMessage ||
-				msg.message?.viewOnceMessageV2?.message?.videoMessage ||
-				msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-					?.viewOnceMessage?.message?.videoMessage ||
-				msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-					?.viewOnceMessageV2?.message?.videoMessage
-				? "video"
-				: undefined;
-	const m = msg.message?.imageMessage
-		? msg.message?.imageMessage
-		: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-			?.imageMessage
-			? msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-				?.imageMessage
-			: msg.message?.videoMessage
-				? msg.message?.videoMessage
-				: msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-					?.videoMessage
-					? msg.message?.extendedTextMessage?.contextInfo?.quotedMessage
-						?.videoMessage
-					: undefined;
-	if (m === undefined || m === null || type === undefined || type === null) {
-		sock.sendMessage(
+	const source = resolveStickerSource(msg);
+	if (!source) {
+		await sock.sendMessage(
 			msg.key.remoteJid,
 			{
 				text: `Envía una imagen/vídeo/gif con el comando *${prefix}sticker*, o bien responde a uno ya enviado.`,
 			},
 			{ quoted: msg },
 		);
-	} else {
-		try {
-			const remoteJid = msg.key.remoteJid.split("@")[0];
-			const w = await downloadContentFromMessage(m, type).catch(async (e) => {
-				await errorHandler(sock, msg, "sticker", e);
-			});
-			w.pipe(fs.createWriteStream(`./media_storage/vo/${m.viewOnce == true ? "vo" : ""}-${remoteJid}D${new Date().toLocaleDateString().replaceAll("/", "-")}T${new Date().toLocaleTimeString().replaceAll(":", "-")}.${type === "image" ? "jpg" : "mp4"}`));
-			let buffer = Buffer.from([]);
-			for await (const chunk of w) {
-				buffer = Buffer.concat([buffer, chunk]);
-			}
-			const prepared = await prepareStickerMedia(buffer, type).catch(async (e) => {
-				await errorHandler(sock, msg, "sticker", e);
-			});
-			let s = await sticker(prepared).catch(async (e) => {
-				await errorHandler(sock, msg, "sticker", e);
-			});
-			await sock
-				.sendMessage(msg.key.remoteJid, { sticker: s }, { quoted: msg })
-				.catch(async (e) => {
-					await errorHandler(sock, msg, this.config.name, e);
-				});
-		} catch (e) {
-			await errorHandler(sock, msg, this.config.name, e);
+		return;
+	}
+
+	try {
+		const { media, kind, downloadType } = source;
+		const stream = await downloadContentFromMessage(media, downloadType).catch(async (e) => {
+			await errorHandler(sock, msg, "sticker", e);
+			return null;
+		});
+		if (!stream) return;
+
+		const chunks = [];
+		for await (const chunk of stream) {
+			chunks.push(chunk);
 		}
+		const buffer = Buffer.concat(chunks);
+
+		const remoteJid = msg.key.remoteJid.split("@")[0];
+		const storageDir = path.resolve("./media_storage/vo");
+		fs.mkdirSync(storageDir, { recursive: true });
+		const ext = kind === "image" ? "jpg" : kind === "gif" ? "gif" : "mp4";
+		const storagePath = path.join(
+			storageDir,
+			`${media.viewOnce === true ? "vo-" : ""}${remoteJid}D${new Date().toLocaleDateString().replaceAll("/", "-")}T${new Date().toLocaleTimeString().replaceAll(":", "-")}.${ext}`,
+		);
+		fs.writeFile(storagePath, buffer, () => {});
+
+		const stickerBuffer = await buildStickerBuffer(buffer, kind).catch(async (e) => {
+			await errorHandler(sock, msg, "sticker", e);
+			return null;
+		});
+		if (!stickerBuffer) return;
+
+		await sock
+			.sendMessage(msg.key.remoteJid, { sticker: stickerBuffer }, { quoted: msg })
+			.catch(async (e) => {
+				await errorHandler(sock, msg, module.exports.config.name, e);
+			});
+	} catch (e) {
+		await errorHandler(sock, msg, module.exports.config.name, e);
 	}
 };
 

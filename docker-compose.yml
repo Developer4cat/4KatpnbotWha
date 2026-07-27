@@ -1,0 +1,25 @@
+services:
+  4ktbot:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: 4ktbot:latest
+    container_name: 4ktbot
+    restart: unless-stopped
+    ports:
+      - "${port:-4000}:4000"
+    env_file:
+      - .env
+    environment:
+      py_cmd_img: "python3 lib/converter/png.py"
+      py_cmd_vid: "python3 lib/converter/mp4.py"
+      py_cmd_gif: "python3 lib/converter/gif.py"
+      py_cmd_pic: "python3 lib/converter/pic.py"
+      OLLAMA_HOST: http://host.docker.internal:11434
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./auth_info:/app/auth_info
+      - ./db:/app/db
+      - ./temp:/app/temp
+      - ./media_storage:/app/media_storage
+      - ./logs.txt:/app/logs.txt
