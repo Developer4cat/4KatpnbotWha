@@ -481,3 +481,7 @@ Luego vuelve a construir. (Si tu `.gitignore` local ignora el lockfile, genéral
 ## Autor
 
 Developer4cat — [4KatpnbotWha](https://github.com/Developer4cat/4KatpnbotWha)
+
+
+## PD:
+valentina, si estás leyendo esto, por este motivo no he empezado a chambear, tuve que hacer este commit.
